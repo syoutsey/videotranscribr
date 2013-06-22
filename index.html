@@ -1,458 +1,393 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>
-    </title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <!-- Le styles -->
-    <link href="assets/css/bootstrap.css" rel="stylesheet">
-    <script type="text/javascript" src="https://js.stripe.com/v1/"></script>
-    <style>
-      body { padding-top: 60px; /* 60px to make the container go all the way
-      to the bottom of the topbar */ }
-    </style>
-    <link rel="stylesheet" type="text/css" href="style.css"/>
-    <link href="assets/css/bootstrap-responsive.css" rel="stylesheet">
-    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
-    <!--[if lt IE 9]>
-      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js">
-      </script>
-    <![endif]-->
-    <!-- Le fav and touch icons -->
-    <link rel="shortcut icon" href="assets/ico/favicon.ico">
-    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="assets/ico/apple-touch-icon-144-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="assets/ico/apple-touch-icon-114-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="assets/ico/apple-touch-icon-72-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" href="assets/ico/apple-touch-icon-57-precomposed.png">
-    <style>
-    </style>
-        <script type="text/javascript">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta name="generator" content="HTML Tidy for Linux/x86 (vers 25 March 2009), see www.w3.org" />
+	<meta charset="utf-8" />
+
+	<title>Videotranscribr</title>
+	<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+	<meta content="" name="description" />
+	<meta content="" name="author" />
+	<link href="assets/css/bootstrap.css" rel="stylesheet" type="text/css" />
+	<script src="https://js.stripe.com/v1/" type="text/javascript">
+	</script>
+	<style type="text/css">
+		/*<![CDATA[*/
+		body { padding-top: 60px; /* 60px to make the container go all the way
+		to the bottom of the topbar */ }
+		/*]]>*/
+	</style>
+	<link href="style.css" rel="stylesheet" type="text/css" />
+	<link href="assets/css/bootstrap-responsive.css" rel="stylesheet" type="text/css" /><!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+	<!--[if lt IE 9]>
+	<script src="http://html5shim.googlecode.com/svn/trunk/html5.js">
+	</script>
+	<![endif]-->
+	<link href="assets/ico/favicon.ico" rel="shortcut icon" />
+	<link href="assets/ico/apple-touch-icon-144-precomposed.png" rel="apple-touch-icon-precomposed" sizes="144x144" />
+	<link href="assets/ico/apple-touch-icon-114-precomposed.png" rel="apple-touch-icon-precomposed" sizes="114x114" />
+	<link href="assets/ico/apple-touch-icon-72-precomposed.png" rel="apple-touch-icon-precomposed" sizes="72x72" />
+	<link href="assets/ico/apple-touch-icon-57-precomposed.png" rel="apple-touch-icon-precomposed" />
+	<script type="text/javascript">
+	//<![CDATA[
 	var linkid = 1;
 	var linkNumber = 5;
 	var linkCount = 0;
 	var totalTime = 0;
 	var stripevisible = 0;
-	
-	function addVideoURL(id)
+
+	function verifyEmailMatch() 
 	{
-		alert(id);
+		var email1 = document.getElementById('email_addr').value;
+		var email2 = document.getElementById('email_addr_repeat').value;
+		if (email1 != email2) 
+		{
+			input.setCustomValidity('The two email addresses must match.');
+		} 
+		else 
+		{
+			// input is valid -- reset the error message
+			input.setCustomValidity('');
+		}
 	}
-    // code to call the vimeo url
-    // http://vimeo.com/api/v2/video/56974716.json?callback=getVimeoDuration
 
-function check(input) 
-{
-  if (input.value != document.getElementById('email_addr').value) 
-  {
-    input.setCustomValidity('The two email addresses must match.');
-  } 
-  else 
-  {
-    // input is valid -- reset the error message
-    input.setCustomValidity('');
-  }
-}
-
-function verifyInputs()
-{
-  var c = 0;
-  var form = document.getElementById("infoform");
-    for(i=0; i< form.length; i++)
-    {
-      var field = form.elements[i];
-      //console.log("element " + i + " " + field.value);
-      if(field.id.match(/link/g) && field.value != '')
-        c++;
-      if(field.value == '' && field.required)
-      {
-      //  console.log("failed: element " + i + " " + field.value + " " + field.id);
-        field.setCustomValidity('Required');
-        return 0;
-      }
-    }
-  linkCount = c;
-    return 1;
-}
-
-function add(type) 
-{
-	if(linkid > 4)
+	function verifyInputs()
 	{
-    showErrorLabel("Limit 5 videos per transaction");
+		var c = 0;
+		var form = document.getElementById("infoform");
+		for(i=0; i< form.length; i++)
+		{
+			var field = form.elements[i];
+			if(field.id.match(/link/g) && field.value != '')  c++;
+			if(field.value == '' && field.required)
+			{
+				field.setCustomValidity('Required');
+				return 0;
+			}
+		}
+		linkCount = c;
+		return 1;
 	}
-	else 
+
+	function add(type) 
 	{
+		if(linkid > 4)
+		{
+			showErrorLabel("Limit 5 videos per transaction");
+		}
+		else 
+		{
+			var divid = "linkdiv" + linkid;
+			var oldelement = document.getElementById(divid);
+
+			var types = oldelement.children;
+			var imgdiv;
+
+			// because removeChild will alter the types.length
+			// we have to access it in reverse order.
+			for (var i = types.length-1; i >= 0; i--)
+			{
+				if (types[i].tagName.toLowerCase() == 'a')
+				{
+					oldelement.removeChild(types[i]);
+				}
+			}
+
+			removeErrLabel();
+			//Create an input type dynamically.
+			linkid++;
+			var newdiv = document.createElement("div");
+			newdiv.id = "linkdiv" + linkid;
+			
+			var newlabel = document.createElement("label");
+			newlabel.innerHTML = "Video URL " + linkid;
+			
+			var newelement = document.createElement("input");
+			newelement.setAttribute("type", type);
+			newelement.setAttribute("id", "link" + linkid);
+			newelement.setAttribute("name", "link" + linkid);
+			
+			var plusbtn = document.createElement("a");
+			plusbtn.href = "javascript:observeInputValue('linkdiv' + linkid);";
+			var img1 = document.createElement("img");
+			img1.src="plus-icon.png";
+			img1.id="plus-img";
+			plusbtn.appendChild(img1);
+			
+			var minusbtn = document.createElement("a");
+			minusbtn.href = "javascript:removeURLField();";
+			var img2 = document.createElement("img");
+			img2.src="minus-icon.jpg";
+			img2.id="minus-img";
+			minusbtn.appendChild(img2);
+			
+			newdiv.appendChild(newlabel);
+			newdiv.appendChild(newelement);
+			newdiv.appendChild(plusbtn);
+			newdiv.appendChild(minusbtn);
+			
+			document.getElementById("videourls").appendChild(newdiv);
+		}
+		parseURLS();
+	}
+
+	function removeURLField()
+	{
+		removeErrLabel();
 		var divid = "linkdiv" + linkid;
 		var oldelement = document.getElementById(divid);
-		
-		var types = oldelement.children;
-		var imgdiv;
-		
-		// because removeChild will alter the types.length
-		// we have to access it in reverse order.
-		for (var i = types.length-1; i >= 0; i--)
-		{
-			  if (types[i].tagName.toLowerCase() == 'a')
-			  {
-			  	  oldelement.removeChild(types[i]);
-			  }
-		}
-		
-		removeErrLabel();
-		//Create an input type dynamically.
-		linkid++;
-		var newdiv = document.createElement("div");
-		newdiv.id = "linkdiv" + linkid;
-		
-		var newlabel = document.createElement("label");
-		newlabel.innerHTML = "Video URL " + linkid + " :";
-		
-		var newelement = document.createElement("input");
-		newelement.setAttribute("type", type);
-		newelement.setAttribute("id", "link" + linkid);
-		newelement.setAttribute("name", "link" + linkid);
-		
+		console.log(oldelement);
+
+		document.getElementById("videourls").removeChild(oldelement);
+
+		linkid--;
+
+		divid = "linkdiv" + linkid;
+		var currelement = document.getElementById(divid);
+
 		var plusbtn = document.createElement("a");
 		plusbtn.href = "javascript:observeInputValue('linkdiv' + linkid);";
 		var img1 = document.createElement("img");
 		img1.src="plus-icon.png";
 		img1.id="plus-img";
 		plusbtn.appendChild(img1);
-		
-		var minusbtn = document.createElement("a");
-		minusbtn.href = "javascript:removeURLField();";
-		var img2 = document.createElement("img");
-		img2.src="minus-icon.jpg";
-		img2.id="minus-img";
-		minusbtn.appendChild(img2);
-		
-		newdiv.appendChild(newlabel);
-		newdiv.appendChild(newelement);
-		newdiv.appendChild(plusbtn);
-		newdiv.appendChild(minusbtn);
-		
-		document.getElementById("videourls").appendChild(newdiv);
+
+		currelement.appendChild(plusbtn);
+
+		if (Number(linkid) > 1)
+		{
+			var minusbtn = document.createElement("a");
+			minusbtn.href = "javascript:removeURLField();";
+			var img2 = document.createElement("img");
+			img2.src="minus-icon.jpg";
+			img2.id="minus-img";
+			minusbtn.appendChild(img2);
+
+			currelement.appendChild(minusbtn);
+		}
+		parseURLS();
 	}
-	 parseURLS();
-}
 
-function removeURLField()
-{
-	removeErrLabel();
-	var divid = "linkdiv" + linkid;
-    var oldelement = document.getElementById(divid);
-    console.log(oldelement);
-
-    document.getElementById("videourls").removeChild(oldelement);
-    
-    linkid--;
-    
-    divid = "linkdiv" + linkid;
-    var currelement = document.getElementById(divid);
-	
-	var plusbtn = document.createElement("a");
-	plusbtn.href = "javascript:observeInputValue('linkdiv' + linkid);";
-	var img1 = document.createElement("img");
-	img1.src="plus-icon.png";
-	img1.id="plus-img";
-	plusbtn.appendChild(img1);
-	
-	currelement.appendChild(plusbtn);
-	
-	if (Number(linkid) > 1)
+	function removeErrLabel()
 	{
-		var minusbtn = document.createElement("a");
-		minusbtn.href = "javascript:removeURLField();";
-		var img2 = document.createElement("img");
-		img2.src="minus-icon.jpg";
-		img2.id="minus-img";
-		minusbtn.appendChild(img2);
-		
-		currelement.appendChild(minusbtn);
-	}
-        parseURLS();
-}
-
-function removeErrLabel()
-{
-	var errlabel = document.getElementById('errlabel');
-//	console.log(errlabel);
-	if (errlabel != null)
+		var errlabel = document.getElementById('errlabel');
+		if (errlabel != null)
 		document.getElementById("videourls").removeChild(errlabel);
-}
+	}
 
-function parseURLS()
-{
-  totalTime = 0;
+	function parseURLS()
+	{
+		totalTime = 0;
+		for(var i = 1; i < linkid + 1; i++)
+		{
+			var lid = "link" + i;
+			var link = document.getElementById(lid);
+			var url = link.value;
+			//console.log(url)
+			var matched = url.match(/youtube/g);
 
-  var i = 1;
-  for(; i<linkid+1; i++)
-  {
-    var lid = "link" + i;
-    var link = document.getElementById(lid);
-    var url = link.value;
-        //console.log(url)
-    var matched = url.match(/youtube/g);
+			if(matched)
+				parseYouTube(url);
 
-    if(matched)
-      parseYouTube(url);
+			matched = url.match(/vimeo/g);
+			if(matched)
+				parseVimeo(url);
+		} 
+	}
 
-    matched = url.match(/vimeo/g);
-    if(matched)
-      parseVimeo(url);
-  } 
-}
+	function parseYouTube(url)
+	{
+		var vid = url.split("=");
+		var vidId = vid[vid.length-1];
+		var youtubeCallback = "http://gdata.youtube.com/feeds/api/videos/" + vidId + "?v=2&alt=jsonc&callback=getYouTubeDuration&prettyprint=true"
+		var script = document.createElement("script");
+		script.src = youtubeCallback;
+		var spanform = document.getElementById("urlspan");
+		spanform.appendChild(script);
+	}
 
-function parseYouTube(url)
-{
-  var vid = url.split("=");
-  var vidId = vid[vid.length-1];
-  var youtubeCallback = "http://gdata.youtube.com/feeds/api/videos/" + vidId + "?v=2&alt=jsonc&callback=getYouTubeDuration&prettyprint=true"
-  var script = document.createElement("script");
-  script.src = youtubeCallback;
-  var spanform = document.getElementById("urlspan");
-  spanform.appendChild(script);
-}
+	function parseVimeo(url)
+	{
+		var vid = url.split("/");
+		var vidId = vid[vid.length-1];
+		var vimeoCallback = "http://vimeo.com/api/v2/video/" + vidId + ".json?callback=getVimeoDuration";
+		var script = document.createElement("script");
+		script.src = vimeoCallback;
+		var spanform = document.getElementById("urlspan");
+		spanform.appendChild(script);
+	}
 
-function parseVimeo(url)
-{
-  var vid = url.split("/");
-  var vidId = vid[vid.length-1];
-  var vimeoCallback = "http://vimeo.com/api/v2/video/" + vidId + ".json?callback=getVimeoDuration";
-  var script = document.createElement("script");
-  script.src = vimeoCallback;
-  var spanform = document.getElementById("urlspan");
-  spanform.appendChild(script);
-}
+	function showErrorLabel(msg)
+	{
+		var errlabel = document.getElementById('errlabel');
+		if(!errlabel)
+		{
+			var errlabel =document.createElement("label");
+			errlabel.setAttribute("id", "errlabel");
+		}
+		errlabel.innerHTML = msg;
+		var spanform = document.getElementById("videourls");
+		spanform.appendChild(errlabel);
+	}
 
-function showErrorLabel(msg)
-{
-  var errlabel = document.getElementById('errlabel');
-  if(!errlabel)
-  {
-    var errlabel =document.createElement("label");
-    errlabel.setAttribute("id", "errlabel");
-  }
-    errlabel.innerHTML = msg;
-    var spanform = document.getElementById("videourls");
-    spanform.appendChild(errlabel);
-}
+	// callback function from vimeo
+	function getVimeoDuration(jsonobj)
+	{
+		var time = jsonobj[0].duration;
+		if( time > 5400)
+			showErrorLabel("Individual video time limit must be < 90 minutes");
+		else
+			totalTime += time;
 
-function getVimeoDuration(jsonobj)
-{
-  var time = jsonobj[0].duration;
-  if( time > 5400)
-    showErrorLabel("Individual video time limit must be < 90 minutes");
-  else
-    totalTime += time;
-  updateTimeTxt();
-  observeInputValue();
-}
+		updateTimeTxt();
+		observeInputValue();
+	}
 
-function getYouTubeDuration(jsonobj)
-{
-  var time = jsonobj["data"]["duration"];
-  if(time > 5400)
-    showErrorLabel("Individual video time limit must be < 90 minutes");
-  else
-    totalTime += time;
-  updateTimeTxt();
-  observeInputValue();
-}
+	// callback function from youtube
+	function getYouTubeDuration(jsonobj)
+	{
+		var time = jsonobj["data"]["duration"];
+		if(time > 5400)
+			showErrorLabel("Individual video time limit must be < 90 minutes");
+		else
+			totalTime += time;
 
-function updateTimeTxt()
-{
-  var totaltxt = document.getElementById("total");
-  totaltxt.value = ((totalTime/60)*3).toFixed(2);
-}
+		updateTimeTxt();
+		observeInputValue();
+	}
 
-function observeInputValue(input)
-{
-  if(input && input.value != '')
-    add('text');
-  if(verifyInputs())
-  {
-    var totaltxt = document.getElementById("total");
-    var updateval = ((totalTime/60)*3).toFixed(2);
-    console.log(totaltxt.value);
-    if(totaltxt.value != "0")
-    {   
-      var paybutton = document.getElementById("customButton");
-      if(totaltxt.value != 0)
-        paybutton.style.visibility = "visible";
-      else
-        paybutton.style.visibility = "invisible";
-    }
-  }   
-}
-    </script>
-  </head>
-  <body>
-    <div class="navbar navbar-fixed-top navbar-inverse">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="brand" href="#">
-            VideoTranscribe
-          </a>
-          <ul class="nav">
-              <li>
-              <a href="#FAQ">
-                FAQ
-              </a>
-            </li>
-            <li>
-              <a href="#Transcribe">
-                Transcribe
-              </a>
-            </li>
-          </ul>
-          <form class="navbar-form pull-right">
-          </form>
-        </div>
-      </div>
-    </div>
-    <div class="container">
-      <div class="hero-unit">
-        <div>
-          <h1>
-            Video Transcription Services
-          </h1>
-          <p>
-            We offer fast, accurate, and inexpensive video transcriptions for all
-            your needs. Have a video you need transcribed? Send us the link, confirm
-            your payment and response speed, and we'll get your transcript to you in
-            no time!
-          </p>
-        </div>
-        <a class="btn btn-primary" href="#Transcribe">
-          Transcribe »
-        </a>
-      </div>
-      <h3 id="FAQ">
-        <a name="FAQ"></a>
-        Frequently Asked Questions
-        <ul style="font-size: 13px;">
-          <li>
-            <h4>
-              What are your prices?
-            </h4>
-            Our prices are extremely competitive: we offer 1 business day turnaround
-            for $4 a minute and 3 business day turnaround for $2 a minute
-          </li>
-          <li>
-            <h4>
-              What languages of transcription do you offer?
-            </h4>
-            Currently, only English videos are available to be transcribed
-          </li>
-          <li>
-            <h4>
-              What payment types do you accept?
-            </h4>
-            Because we use the excellent and secure <a href="https://stripe.com/">Stripe</a> payment system
-            we are able to accept Visa, Mastercard, and American Express
-          </li>
-          <li>
-            <h4>
-              What is your privacy policy for my content?
-            </h4>
-            We hate having our information distributed to third-parties and care just as much about privacy as you do. We will never sell or discuss your content with anyone, ever. Period.
-          </li>
-          <li>
-            <h4>
-              How are the transcription files returned to me?
-            </h4>
-            We return both a .txt and a .doc (for Microsoft Word) in the
-            <a href="http://en.wikipedia.org/wiki/SubRip#SubRip_text_file_format">
-              SubTime format
-            </a>
-          </li>
-        </ul>
-      </h3>
-      <div id="Payment" class="well Payment">
-        <div>
-          <h1>
-            Transcribe my video already!
-          </h1>
-        </div>
-      </div>
-      <a name="Transcribe"></a>
-      <span id="urlspan">
-	      <form id="infoform" action="charge.php" method="post">
-          <label>Full Name:</label>
-          <input type="text" id="full_name" name="full_name" placeholder="Jane Doe" required>
+	function updateTimeTxt()
+	{
+		var totaltxt = document.getElementById("total");
+		totaltxt.value = ((totalTime/60)*3).toFixed(2);
+	}
 
-          <label>Email Address:</label>
-          <input type="email" id="email_addr" name="email_addr" required>
+	function observeInputValue(input)
+	{
+		if(input && input.value != '')
+			add('text');
+		if(verifyInputs())
+		{
+			var totaltxt = document.getElementById("total");
+			var updateval = ((totalTime/60)*3).toFixed(2);
+			console.log(totaltxt.value);
+			if(totaltxt.value != "0")
+			{   
+				var paybutton = document.getElementById("customButton");
+				if(totaltxt.value != 0)
+					paybutton.style.visibility = "visible";
+				else
+					paybutton.style.visibility = "invisible";
+			}
+		}   
+	}
+	//]]>
+	</script>
+</head>
+	<body>
+		<div class="navbar navbar-fixed-top navbar-inverse">
+			<div class="navbar-inner">
+				<div class="container">
+					<a class="brand" href="#">VideoTranscribr</a>
+					<ul class="nav">
+						<li><a href="#FAQ">FAQ</a></li>
+						<li><a href="#Transcribe">Transcribe</a></li>
+					</ul>
+					<form class="navbar-form pull-right"></form>
+				</div>
+			</div>
+		</div>
 
-          <label>Verify Email Address:</label>
-          <input type="email" id="email_addr_repeat" name="email_addr_repeat" required 
-           oninput="check(this)">
-          <div id="videourls">
-	          <div id="linkdiv1">
-		          <label>Video URL:</label>
-				  <input type="text" id="link1" name="link1" required>
-			      <a href="javascript:observeInputValue('link' + linkid);"><img src="plus-icon.png" id="plus-img"></a>
-	          </div>
-          </div>
-      </span>
+		<div class="container">
+			<div class="hero-unit">
+				<div>
+					<h1>Video Transcription Services</h1>
 
-            <br>
-            <br>
-            <label>Estimated total:</label>
-          $<input id="total" name="total" value="0" readonly >
-          <br> <br>
-          <input id="calcbutton" type="button" value="Calculate Cost" onclick="parseURLS()">
-        <input id="stripeToken" name="stripeToken" value="" style="visibility:hidden">
+					<br>
 
-          <br><br>
-          <span id="stripespan">&nbsp;</span>
-<script src="https://checkout.stripe.com/v2/checkout.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
-        <input id="customButton" type="button" value="Pay with Stripe" style="visibility:hidden" required>
+					<p>We offer fast, accurate, and inexpensive video and audio transcriptions for all your needs. Have a file you need transcribed? Send us the link, confirm your payment and response speed, and we'll get your transcript to you in no time!</p>
+				</div><a class="btn btn-primary" href="#Transcribe">Transcribe &#187;</a>
+			</div>
 
-  <script>
-    $('#customButton').click(function(){
-      var token = function(res){
-            console.log('Got token ID:', res.id);
-            document.getElementById("stripeToken").value = res.id;
-            var total = document.getElementById("total");
-            total.value = (total.value*100).toFixed(0);
-            document.getElementById("infoform").submit();
-      };
+			<h3 id="FAQ"><a id="FAQ" name="FAQ"></a> Frequently Asked Questions</h3>
 
-      StripeCheckout.open({
-        key:         'pk_test_7cw6SNXgq3gGCgXJhEFm3b4y',
-        address:     true,
-        amount:      ((totalTime/60)*300).toFixed(0),
-        name:        'VideoTranscribr',
-        description: '' + linkCount + 'x videos - $' + ((totalTime/60)*3).toFixed(2),
-        panelLabel:  'Checkout',
-        token:       token
-      });
-      return false;
-    });
-  </script>
+			<ul style="font-size: 13px;">
+				<li>
+					<h4>What are your prices?</h4>Our prices are extremely competitive: we offer 1 business day turnaround for $4 a minute and 3 business day turnaround for $2 a minute
+				</li>
 
-          <!--  add code for custom button submission so we can't submit with invalid data
-            or fields that are left empty -->
-        </form>
-      <hr>
-      <div>
-        © Nick &amp; Sam 2012
-      </div>
-    </div>
+				<li>
+					<h4>What languages of transcription do you offer?</h4>Currently, only English-language videos are available for transcription
+				</li>
 
-    <style>
-      
-    </style>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js">
-    </script>
-    <script src="assets/js/bootstrap.js">
-    </script>
+				<li>
+					<h4>What payment types do you accept?</h4>Because we use the excellent and secure <a href="https://stripe.com/">Stripe</a> payment system we are able to accept Visa, Mastercard, and American Express
+				</li>
 
-  </body>
+				<li>
+					<h4>What is your privacy policy for my content?</h4>We hate having our information distributed to third-parties and care just as much about privacy as you do. We will never sell or discuss your content with anyone, ever. Period.
+				</li>
+
+				<li>
+					<h4>How are the transcription files returned to me?</h4>We return both a .txt and a .doc (Microsoft Word format) in the <a href="http://en.wikipedia.org/wiki/SubRip#SubRip_text_file_format">SubTime format</a>
+				</li>
+			</ul>
+
+			<div class="well Payment" id="Payment">
+				<div>
+					<h1>Transcribe my files already!</h1>
+				</div>
+			</div><a id="Transcribe" name="Transcribe"></a> <span id="urlspan"></span>
+
+			<form action="charge.php" id="infoform" method="post" name="infoform">
+				<span id="urlspan"><label>Full Name</label> <input id="full_name" name="full_name" placeholder="Jane Doe" required="" type="text" /> <label>Email Address</label> <input id="email_addr" name="email_addr" placeholder="jane@doe.com" required="" type="email" /> <label>Verify Email Address</label> <input id="email_addr_repeat" name="email_addr_repeat" oninput="verifyEmailMatch()" placeholder="jane@doe.com" required="" type="email" /></span>
+
+				<div id="videourls">
+					<span id="urlspan"></span>
+
+					<div id="linkdiv1">
+						<span id="urlspan"><label>File URL (YouTube or Vimeo accepted)</label> <input id="link1" name="link1" placeholder="http://www.youtube.com/watch?v=VCfjvTOS6bM" required="" type="text" /> <a href="javascript:observeInputValue('link'%20+%20linkid);"><img id="plus-img" src="plus-icon.png" /></a></span>
+					</div><span id="urlspan"></span>
+				</div><br />
+				<br />
+				<label>Estimated total:</label> $<input id="total" name="total" readonly="readonly" value="0" /><br />
+				<br />
+				<input id="calcbutton" onclick="parseURLS()" type="button" value="Calculate Cost" /> <input id="stripeToken" name="stripeToken" style="visibility:hidden" value="" /><br />
+				<br />
+				<span id="stripespan"></span> <script src="https://checkout.stripe.com/v2/checkout.js" type="text/javascript">
+				</script> <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js" type="text/javascript">
+				</script> <input id="customButton" required="" type="button" value="Pay with Stripe" /> <script type="text/javascript">
+				//<![CDATA[
+				$('#customButton').click(function(){
+					var token = function(res){
+						console.log('Got token ID:', res.id);
+						document.getElementById("stripeToken").value = res.id;
+						var total = document.getElementById("total");
+						total.value = (total.value*100).toFixed(0);
+						document.getElementById("infoform").submit();
+					};
+
+					StripeCheckout.open({
+						key:         'pk_test_7cw6SNXgq3gGCgXJhEFm3b4y',
+						address:     true,
+						amount:      ((totalTime/60)*300).toFixed(0),
+						name:        'VideoTranscribr',
+						description: '' + linkCount + 'x videos - $' + ((totalTime/60)*3).toFixed(2),
+						panelLabel:  'Checkout',
+						token:       token
+					});
+					return false;
+				});
+				//]]>
+				</script> <!--  add code for custom button submission so we can't submit with invalid data
+				or fields that are left empty -->
+					</form>
+				<hr />
+
+			<div>
+				&#169; Nick &amp; Sam 2012
+			</div>
+		</div><script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript">
+	</script><script src="assets/js/bootstrap.js" type="text/javascript">
+	</script>
+</body>
 </html>
