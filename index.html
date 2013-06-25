@@ -13,7 +13,7 @@
 	<style type="text/css">
 		/*<![CDATA[*/
 		body { padding-top: 60px; /* 60px to make the container go all the way
-		to the bottom of the topbar */ }
+									to the bottom of the topbar */ }
 		/*]]>*/
 	</style>
 	<link href="style.css" rel="stylesheet" type="text/css" />
@@ -70,6 +70,8 @@
 
 	function add(type) 
 	{
+		// console.log("type: " + type);
+		// console.log("linkid: " + linkid);
 		if(linkid > 4)
 		{
 			showErrorLabel("Limit 5 videos per transaction");
@@ -78,16 +80,21 @@
 		{
 			var divid = "linkdiv" + linkid;
 			var oldelement = document.getElementById(divid);
+			// console.log('oldelement: ', oldelement);
 
 			var types = oldelement.children;
+			console.log('types: ', types);
 			var imgdiv;
 
 			// because removeChild will alter the types.length
 			// we have to access it in reverse order.
 			for (var i = types.length-1; i >= 0; i--)
 			{
+				console.log("i: " + i);
+				console.log("types tagname: " + types[i].tagName.toLowerCase());
 				if (types[i].tagName.toLowerCase() == 'a')
 				{
+					console.log("removing element");
 					oldelement.removeChild(types[i]);
 				}
 			}
@@ -336,23 +343,29 @@
 				<div>
 					<h1>Transcribe my files already!</h1>
 				</div>
-			</div><a id="Transcribe" name="Transcribe"></a> <span id="urlspan"></span>
+			</div>
+			<a id="Transcribe" name="Transcribe"></a>
+			<span id="urlspan"></span>
 
 			<form action="charge.php" id="infoform" method="post" name="infoform">
-				<span id="urlspan"><label>Full Name</label> <input id="full_name" name="full_name" placeholder="Jane Doe" required="" type="text" /> <label>Email Address</label> <input id="email_addr" name="email_addr" placeholder="jane@doe.com" required="" type="email" /> <label>Verify Email Address</label> <input id="email_addr_repeat" name="email_addr_repeat" oninput="verifyEmailMatch()" placeholder="jane@doe.com" required="" type="email" /></span>
+				<label>Full Name</label> <input id="full_name" name="full_name" placeholder="Jane Doe" required="" type="text"/>
+				<label>Email Address</label> <input id="email_addr" name="email_addr" placeholder="jane@doe.com" required="" type="email"/>
+				<label>Verify Email Address</label> <input id="email_addr_repeat" name="email_addr_repeat" oninput="verifyEmailMatch()" placeholder="jane@doe.com" required="" type="email" />
 
 				<div id="videourls">
-					<span id="urlspan"></span>
-
 					<div id="linkdiv1">
-						<span id="urlspan"><label>File URL (YouTube or Vimeo accepted)</label> <input id="link1" name="link1" placeholder="http://www.youtube.com/watch?v=VCfjvTOS6bM" required="" type="text" /> <a href="javascript:observeInputValue('link'%20+%20linkid);"><img id="plus-img" src="plus-icon.png" /></a></span>
-					</div><span id="urlspan"></span>
-				</div><br />
+							<label>File URL (YouTube or Vimeo accepted)</label> <input id="link1" name="link1" placeholder="http://www.youtube.com/watch?v=VCfjvTOS6bM" required="" type="text"></input>
+							<a href="javascript:observeInputValue('link' + linkid);"><img id="plus-img" src="plus-icon.png"></img></a>
+					</div>
+				</div>
+				<br/>
 				<br />
-				<label>Estimated total:</label> $<input id="total" name="total" readonly="readonly" value="0" /><br />
+				<label>Estimated total</label> $<input id="total" name="total" readonly="readonly" value="0" /><br />
 				<br />
-				<input id="calcbutton" onclick="parseURLS()" type="button" value="Calculate Cost" /> <input id="stripeToken" name="stripeToken" style="visibility:hidden" value="" /><br />
-				<br />
+				<input id="calcbutton" onclick="parseURLS()" type="button" value="Calculate Cost" />
+				<input id="stripeToken" name="stripeToken" style="visibility:hidden" value="" />
+				<br/>
+				<br/>
 				<span id="stripespan"></span> <script src="https://checkout.stripe.com/v2/checkout.js" type="text/javascript">
 				</script> <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js" type="text/javascript">
 				</script> <input id="customButton" required="" type="button" value="Pay with Stripe" /> <script type="text/javascript">
